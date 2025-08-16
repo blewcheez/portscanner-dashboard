@@ -1,1 +1,1 @@
-# super-scanner (comming soon) 
+# super-scanner (coming soon) 
