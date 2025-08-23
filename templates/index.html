@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Port Scanner Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Port Scanner</h1>
+    <div>
+      <label>Target Host:</label>
+      <input id="host" type="text" placeholder="e.g. scanme.nmap.org">
+      <label>Ports:</label>
+      <input id="ports" type="text" placeholder="e.g. 22,80,443 or 20-100">
+      <button id="scanBtn">Scan</button>
+    </div>
+
+    <h2>Results</h2>
+    <canvas id="portChart"></canvas>
+    <table>
+      <thead>
+        <tr><th>Port</th><th>Status</th></tr>
+      </thead>
+      <tbody id="results"></tbody>
+    </table>
+  </div>
+
+<script>
+document.getElementById("scanBtn").addEventListener("click", async () => {
+  const host = document.getElementById("host").value;
+  const ports = document.getElementById("ports").value;
+
+  const res = await fetch("/scan", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({host, ports})
+  });
+
+  const data = await res.json();
+  const resultsBody = document.getElementById("results");
+  resultsBody.innerHTML = "";
+  data.results.forEach(r => {
+    const row = `<tr><td>${r.port}</td><td class="${r.status}">${r.status}</td></tr>`;
+    resultsBody.innerHTML += row;
+  });
+
+  const ctx = document.getElementById("portChart").getContext("2d");
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Open", "Closed"],
+      datasets: [{
+        data: [data.summary.open, data.summary.closed],
+        backgroundColor: ["#4caf50", "#f44336"]
+      }]
+    }
+  });
+});
+</script>
+</body>
+</html>
